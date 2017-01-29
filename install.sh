@@ -7,6 +7,6 @@ cd imx-poller
 sudo cp dat/* /etc
 sudo cp ./devregs /usr/bin
 sudo cp ./imx-poller /etc/init.d
-sudo update-rc.d -f imx-poller start 1 S .
+sudo update-rc.d -f imx-poller start 1 2 .
 cd ..
-rm -rf imx-watchdog
+rm -rf imx-poller
