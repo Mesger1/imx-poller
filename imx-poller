@@ -1,0 +1,45 @@
+#!/bin/sh
+#/etc/init.d/imx-poller: start imx-poller daemon.
+
+PATH=/bin:/usr/bin
+
+case "$1" in
+  start)
+	echo out > /gpio/pin35/direction
+	echo out > /gpio/pin34/direction
+	echo 0 > /gpio/pin34/value
+	echo 0 > /gpio/pin35/value
+	devregs 0x20bc002 0x5555 >> /dev/null
+	printf "%-50s" " * Starting imx-poller..."
+	printf "\t\t\t%s\n" " [ OK ]"
+	poller() {
+	   	while [ 1 ]
+		do
+			wdt_watchdog=`devregs 0x20bc000 | tail -c 3`
+			if [ "$wdt_watchdog" = "35" ] || [ "$wdt_watchdog" = "34" ]
+			then
+				echo 1 > /gpio/pin35/value
+			else
+				echo 0 > /gpio/pin35/value
+			fi
+			
+			PING='aa'
+			wdt_keepalive=`devregs 0x020bc002 | tail -c 3`
+			if [ "$wdt_keepalive" = "aa" ]
+			then
+				echo 1 > /gpio/pin34/value
+				sleep 1
+				devregs 0x020bc002 0x5555 >> /dev/null
+			else
+				echo 0 > /gpio/pin34/value
+			fi
+		done
+	}; poller &
+	;;
+  *)
+	echo "Usage: /etc/init.d/imx-pinger {start|status}"
+	exit 1
+	;;
+esac
+
+exit 0
